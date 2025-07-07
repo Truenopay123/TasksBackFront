@@ -74,6 +74,9 @@ Usando WSL para Windows
    ```bash
    git clone https://github.com/tu_usuario/nombre_proyecto.git
    cd nombre_proyecto
+   
+# FRONTEND - De autenticacion de Usuarios (Login-Register)
+
 # Gui
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) 
