@@ -9,7 +9,6 @@ export const authInterceptor: any = (req: HttpRequest<unknown>, next: HttpHandle
   const token = authService.getToken();
 
   let authReq = req;
-
   if (token) {
     authReq = req.clone({
       setHeaders: {

@@ -3,7 +3,9 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f9f9f9;
+  background: linear-gradient(135deg, #6b7280, #1e293b); /* Gradiente profesional */
+  overflow: hidden;
+  position: relative;
 }
 
 .header-circle-container {
@@ -31,7 +33,7 @@
 .login-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #ffffff;
   margin-bottom: 1rem;
 }
 
