@@ -14,4 +14,8 @@ export class TaskService {
   getTasksByUser(createdBy: string): Observable<RespuestaTareas> {
     return this.http.get<RespuestaTareas>(`${this.apiUrl}/Usertasks/${createdBy}`);
   }
+
+  updateTaskStatus(taskId: number, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update_task_status/${taskId}`, { status });
+  }
 }

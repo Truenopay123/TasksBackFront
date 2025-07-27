@@ -5,17 +5,27 @@ import { PanelModule } from 'primeng/panel';
 import { CardModule } from 'primeng/card';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
+import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+
+// Interfaz para tipar las columnas del Kanban
+interface KanbanColumn {
+  header: string;
+  status: string;
+  tasks: Task[];
+}
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
   templateUrl: './task-list.component.html',
   styleUrls: ['./task-list.component.css'],
-  imports: [CommonModule, PanelModule, CardModule, HeaderComponent]
+  imports: [CommonModule, PanelModule, CardModule, HeaderComponent, DragDropModule]
 })
 export class TaskListComponent implements OnInit {
   tasks: Task[] = [];
-  kanbanColumns: any[] = [];
+  kanbanColumns: KanbanColumn[] = [];
+  columnIds: string[] = []; // Arreglo para almacenar los IDs de las columnas
+
 
   constructor(private TaskService: TaskService) {}
 
@@ -32,6 +42,7 @@ export class TaskListComponent implements OnInit {
         },
         error: (err) => {
           this.tasks = [];
+          console.error('Error fetching tasks:', err);
         }
       });
     }
@@ -45,6 +56,48 @@ export class TaskListComponent implements OnInit {
       { header: 'Revisión', status: 'Revision', tasks: this.tasks.filter(t => t.status === 'Revision') },
       { header: 'Hecho', status: 'Completed', tasks: this.tasks.filter(t => t.status === 'Completed') }
     ];
+    // Generar los IDs de las columnas para cdkDropListConnectedTo
+    this.columnIds = this.kanbanColumns.map(column => column.status);
+  }
+
+
+  drop(event: CdkDragDrop<Task[]>) {
+    if (event.previousContainer === event.container) {
+      // Reordenar dentro de la misma columna
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      // Mover entre columnas
+      const task = event.previousContainer.data[event.previousIndex];
+      const newStatus = event.container.id; // El status es el id del contenedor
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+
+      // Actualiza el estado de la tarea en el backend
+      this.TaskService.updateTaskStatus(task.id!, newStatus).subscribe({
+        next: (res) => {
+          console.log('Estado de la tarea actualizado:', res);
+          // Actualiza la tarea en la matriz de tareas locales para reflejar el nuevo estado
+          const taskIndex = this.tasks.findIndex(t => t.id === task.id);
+          if (taskIndex !== -1) {
+            this.tasks[taskIndex].status = newStatus;
+          }
+        },
+        error: (err) => {
+          console.error('Error al actualizar el estado de la tarea:', err);
+          // Revertir el cambio de UI si falla la llamada API
+          transferArrayItem(
+            event.container.data,
+            event.previousContainer.data,
+            event.currentIndex,
+            event.previousIndex
+          );
+        }
+      });
+    }
   }
 
   getCardColor(status: string): string {
